@@ -1,4 +1,4 @@
-package org.example;
+package webdi.web;
 
 public record StatusLine(String protocol, int statusCode, String reason) {
     String convert() {

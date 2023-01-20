@@ -1,4 +1,4 @@
-package org.example;
+package webdi.web;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;

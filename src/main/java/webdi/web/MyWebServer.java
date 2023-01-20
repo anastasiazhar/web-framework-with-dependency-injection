@@ -1,10 +1,11 @@
-package org.example;
+package webdi.web;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class MyWebServer implements Runnable{
 
@@ -13,9 +14,11 @@ public class MyWebServer implements Runnable{
     public static final String CRLF = "\r\n";
 
     private final Socket socket;
+    private final HashMap<HandlerKey, Supplier<String>> handlers;
 
-    MyWebServer(Socket socket) {
+    public MyWebServer(Socket socket, HashMap<HandlerKey, Supplier<String>> handlers) {
         this.socket = socket;
+        this.handlers = handlers;
     }
 
     @Override
@@ -30,7 +33,6 @@ public class MyWebServer implements Runnable{
             HashMap<String, String> requestHeaders = new HashMap<>();
             RequestPart currentRequestPart = RequestPart.REQUEST_LINE;
             loop: while ((currentLine = bufferedReader.readLine()) != null) {
-//                System.out.println("Thread " + Thread.currentThread().getName() + ": " + currentLine);
                 switch (currentRequestPart) {
                     case REQUEST_LINE -> {
                         String[] split = currentLine.split(" ");
@@ -81,29 +83,50 @@ public class MyWebServer implements Runnable{
     }
 
     MyResponse handleRequest(MyRequest request) throws Exception {
-        System.out.println("requestLine = " + request.requestLine());
-        System.out.println("HEADERS START");
-        request.requestHeaders().entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
-        System.out.println("HEADERS END");
-        System.out.println("body size = " + request.requestBody().size());
-        System.out.println("body as string = " + request.requestBody());
-
-        if (request.requestLine().path().equals("/home") && request.requestLine().method().equals("GET")) {
+        HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
+        if (handlers.containsKey(handlerKey)) {
+            Supplier<String> supplier = handlers.get(handlerKey);
+            String html = supplier.get();
             StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
             HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, "text/html");
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-            body.write("<h1>you suck.</h1>".getBytes(StandardCharsets.UTF_8));
+            body.write(html.getBytes(StandardCharsets.UTF_8));
             headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
-
             return new MyResponse(statusLine, headers, body);
         } else {
             StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found (you dolboyeb)");
             HashMap<String, String> headers = new HashMap<>();
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-
+            body.write("<h1>404</h1>".getBytes());
             return new MyResponse(statusLine, headers, body);
         }
+
+
+//        System.out.println("requestLine = " + request.requestLine());
+//        System.out.println("HEADERS START");
+//        request.requestHeaders().entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+//        System.out.println("HEADERS END");
+//        System.out.println("body size = " + request.requestBody().size());
+//        System.out.println("body as string = " + request.requestBody());
+//
+//        if (request.requestLine().path().equals("/home") && request.requestLine().method().equals("GET")) {
+//            StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
+//            HashMap<String, String> headers = new HashMap<>();
+//            headers.put(CONTENT_TYPE_HEADER_NAME, "text/html");
+//            ByteArrayOutputStream body = new ByteArrayOutputStream();
+//            body.write("<h1>you suck.</h1>".getBytes(StandardCharsets.UTF_8));
+//            headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
+//
+//            return new MyResponse(statusLine, headers, body);
+//        } else {
+//            StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found (you dolboyeb)");
+//            HashMap<String, String> headers = new HashMap<>();
+//            ByteArrayOutputStream body = new ByteArrayOutputStream();
+//
+//            return new MyResponse(statusLine, headers, body);
+//        }
+
     }
 }
 
