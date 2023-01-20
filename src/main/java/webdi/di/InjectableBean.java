@@ -33,4 +33,13 @@ public class InjectableBean implements Injectable{
             throw new InjectionException("Couldn't invoke method " + method.getName(), e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "InjectableBean{" +
+                "method=" + method.toGenericString() +
+                ", class=" + configuration.getClass().getName() +
+                ", configuration=" + configuration +
+                '}';
+    }
 }

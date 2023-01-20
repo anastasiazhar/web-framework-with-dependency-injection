@@ -5,18 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="551f9a2e-b7f3-4906-91c0-c5677c53fe9c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/jpa-buddy.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/MyRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/MyRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/MyResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/MyResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/MyWebServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/MyWebServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/RequestLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/RequestLine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/StatusLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/StatusLine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/MyConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

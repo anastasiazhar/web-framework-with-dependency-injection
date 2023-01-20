@@ -2,8 +2,10 @@ package webdi;
 
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
-import org.w3c.dom.ls.LSOutput;
 import webdi.annotation.*;
+import webdi.di.Injectable;
+import webdi.di.InjectableBean;
+import webdi.di.InjectableComponent;
 import webdi.exception.InjectionException;
 import webdi.web.HandlerKey;
 import webdi.web.MyWebServer;
@@ -42,157 +44,83 @@ public final class WebdiApplication {
             throw new RuntimeException(e);
         }
 
-        // ...
+        List<Injectable> injectables = new ArrayList<>();
         AccessingAllClassesInPackage accessingAllClassesInPackage = new AccessingAllClassesInPackage();
         Set<Class<?>> classes = accessingAllClassesInPackage.findAllClassesUsingClassLoader(c.getPackageName());
-        Map<Method, Set<Method>> beanDependencies = new HashMap<>();
-        Map<Class<?>, Method> returnTypes = new HashMap<>();
-        Map<Class<?>, Object> beanInstances = new HashMap<>();
-        Map<Object, Set<Method>> configurations = new HashMap<>();
         for (Class<?> clazz : classes) {
+            if (clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Controller.class)) {
+                injectables.add(new InjectableComponent(clazz));
+                continue;
+            }
             if (clazz.isAnnotationPresent(Configuration.class)) {
                 try {
-                    Constructor<?> constructor = clazz.getConstructor();
-                    Object configuration = constructor.newInstance();
-                    configurations.put(configuration, new HashSet<>(List.of(clazz.getMethods())));
+                    Object configuration = clazz.getConstructor().newInstance();
+                    for (Method method : clazz.getMethods()) {
+                        if (method.isAnnotationPresent(Bean.class)) {
+                            injectables.add(new InjectableBean(method, configuration));
+                        }
+                    }
                 } catch (Exception e) {
                     throw new InjectionException("Class " + clazz.getName() + " annotated as @Configuration doesn't have an empty constructor.");
                 }
-                for (Method method : clazz.getMethods()) {
-                    if (method.isAnnotationPresent(Bean.class)) {
-                        if (!Object.class.isAssignableFrom(method.getReturnType())) {
-                            throw new InjectionException("Method " + method.getName() + " annotated as @Bean doesn't return an Object.");
-                        }
-                        returnTypes.put(method.getReturnType(), method);
-                    }
+            }
+        }
+        Map<Class<?>, Injectable> classInjectableMap = new HashMap<>();
+        Map<Injectable, Set<Class<?>>> dependencies = new HashMap<>();
+        for (Injectable i : injectables) {
+            classInjectableMap.put(i.getType(), i);
+            Set<Class<?>> parameters = new HashSet<>();
+            for (Parameter parameter : i.getParameters()) {
+                if (!parameter.isAnnotationPresent(Value.class)) {
+                    parameters.add(parameter.getType());
                 }
             }
+            dependencies.put(i, parameters);
         }
-        for (Class<?> clazz : classes) {
-            if (clazz.isAnnotationPresent(Configuration.class)) {
-                for (Method method : clazz.getMethods()) {
-                    if (method.isAnnotationPresent(Bean.class)) {
-                        Set<Method> set = new HashSet<>();
-                        for (Parameter parameter : method.getParameters()) {
-                            if (!parameter.isAnnotationPresent(Value.class)) {
-                                if (returnTypes.get(parameter.getType()) != null) {
-                                    set.add(returnTypes.get(parameter.getType()));
-                                }
-                            }
-                        }
-                        beanDependencies.put(method, set);
-                    }
-                }
+        DirectedAcyclicGraph<Injectable, DefaultEdge> dag = new DirectedAcyclicGraph<>(DefaultEdge.class);
+        for (Injectable i : injectables) {
+            dag.addVertex(i);
+        }
+        for (Map.Entry<Injectable, Set<Class<?>>> dependency : dependencies.entrySet()) {
+            Injectable key = dependency.getKey();
+            Set<Class<?>> value = dependency.getValue();
+            for (Class<?> clazz : value) {
+                dag.addEdge(key, classInjectableMap.get(clazz));
             }
         }
-        for (Map.Entry<Method, Set<Method>> d : beanDependencies.entrySet()) {
-            System.out.println("method: " + d.getKey().getName());
-            System.out.println("it's dependencies: ");
-            for (Method m : d.getValue()) {
-                System.out.print(m.getName() + "    ");
-            }
-            System.out.print("\n");
-        }
+        List<Injectable> orderedInjectables = new ArrayList<>(StreamSupport.stream(dag.spliterator(), false).toList());
+        Collections.reverse(orderedInjectables);
 
-        DirectedAcyclicGraph<Method, DefaultEdge> dag = new DirectedAcyclicGraph<>(DefaultEdge.class);
-        for (Method method : beanDependencies.keySet()) {
-            dag.addVertex(method);
-        }
-        for (Map.Entry<Method, Set<Method>> entry : beanDependencies.entrySet()) {
-            Method key = entry.getKey();
-            Set<Method> value = entry.getValue();
-            for (Method method : value) {
-                dag.addEdge(key, method);
-            }
-        }
-        List<Method> orderedBeanDependencies = new ArrayList<>(StreamSupport.stream(dag.spliterator(), false).toList());
-        Collections.reverse(orderedBeanDependencies);
-        System.out.println("\n\norder:");
-        orderedBeanDependencies.forEach((method) -> {
-            System.out.println(method.getName());
-        });
-
-        for (Method method : orderedBeanDependencies) {
-            Object configuration = new Object();
-            for (Map.Entry<Object, Set<Method>> entry : configurations.entrySet()) {
-                if (entry.getValue().contains(method)) {
-                    configuration = entry.getKey();
-                }
-            }
+        Map<Class<?>, Object> instances = new HashMap<>();
+        for (Injectable injectable : orderedInjectables) {
             List<Object> arguments = new ArrayList<>();
-            for (Parameter parameter : method.getParameters()) {
+            for (Parameter parameter : injectable.getParameters()) {
                 Class<?> parameterType = parameter.getType();
                 Value value = parameter.getAnnotation(Value.class);
                 if (value == null) {
-                    if (!beanInstances.containsKey(parameterType)) {
-                        throw new InjectionException();
+                    if (!instances.containsKey(parameterType)) {
+                        throw new InjectionException("Failed to create " + injectable + ", because parameter " + parameterType.getName() +
+                                " wasn't found in the list of crated instances.");
                     }
-                    Object instance = beanInstances.get(parameterType);
+                    Object instance = instances.get(parameterType);
                     arguments.add(instance);
                     continue;
                 }
                 if (!parameterType.equals(String.class)) {
-                    throw new InjectionException("Parameter can't be injected, because it's not String.");
+                    throw new InjectionException("Parameter can't be injected, because it's annotated as @Value, but isn't String.");
                 }
                 if (!configValues.containsKey(value.value())) {
-                    throw new InjectionException("Parameter can't be injected, because the respective entry can't be found in config.");
+                    throw new InjectionException("Parameter can't be injected, because the value can't be found in config.");
                 }
                 arguments.add(configValues.get(value.value()));
             }
-            try {
-                Object newInstance = method.invoke(configuration, arguments.toArray());
-                beanInstances.put(method.getReturnType(), newInstance);
-            } catch (Exception e) {
-                throw new InjectionException(e);
-            }
+            Object newInstance = injectable.construct(arguments.toArray());
+            instances.put(injectable.getType(), newInstance);
         }
-        System.out.println("\n\ninstances:");
-        for (Object object : beanInstances.values()) {
+        for (Object object : instances.values()) {
             System.out.println(object.toString());
         }
-        // ...
 
-
-
-        List<Class<?>> dependencies = findDependencies(c.getPackageName());
-        Map<Class<?>, Object> instances = new HashMap<>();
-
-        for (Class<?> aClass : dependencies) {
-            try {
-                Optional<Constructor<?>> optionalConstructor = receiveConstructor(aClass);
-                if (optionalConstructor.isEmpty()) {
-                    throw new InjectionException("Couldn't find a constructor for class: " + aClass.getName());
-                }
-                Constructor<?> constructor = optionalConstructor.get();
-                List<Object> arguments = new ArrayList<>();
-                for (Parameter parameter : constructor.getParameters()) {
-                    Class<?> parameterType = parameter.getType();
-                    Value value = parameter.getAnnotation(Value.class);
-                    if (value == null) {
-                        if (!instances.containsKey(parameterType)) {
-                            instances.forEach((o1, o2) -> {
-                                System.out.println(o1 + " -> " + o2);
-                            });
-                            throw new InjectionException("Failed to construct class " + aClass.getName() + " because dependency " + parameterType.getName() + " couldn't be found.");
-                        }
-                        Object instance = instances.get(parameterType);
-                        arguments.add(instance);
-                        continue;
-                    }
-                    if (!parameterType.equals(String.class)) {
-                        throw new InjectionException("Parameter can't be injected, because it's not String.");
-                    }
-                    if (!configValues.containsKey(value.value())) {
-                        throw new InjectionException("Parameter can't be injected, because the respective entry can't be found in config.");
-                    }
-                    arguments.add(configValues.get(value.value()));
-                }
-                Object newInstance = constructor.newInstance(arguments.toArray());
-                instances.put(aClass, newInstance);
-            } catch (Exception e) {
-                throw new InjectionException(e);
-            }
-        }
         List<Object> controllers = new ArrayList<>();
         for (Map.Entry<Class<?>, Object> entry : instances.entrySet()) {
             if (entry.getKey().isAnnotationPresent(Controller.class)) {
@@ -213,59 +141,6 @@ public final class WebdiApplication {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private static List<Class<?>> findDependencies(String packageName) {
-        AccessingAllClassesInPackage accessingAllClassesInPackage = new AccessingAllClassesInPackage();
-        Set<Class<?>> classes = accessingAllClassesInPackage.findAllClassesUsingClassLoader(packageName);
-
-        Map<Class<?>, Set<Class<?>>> dependencies = new HashMap<>();
-        for (Class<?> aClass : classes) {
-            if (aClass.isAnnotationPresent(Component.class) || aClass.isAnnotationPresent(Controller.class)) {
-                Set<Class<?>> parameters = new HashSet<>();
-                Optional<Constructor<?>> optionalConstructor = receiveConstructor(aClass);
-                if (optionalConstructor.isEmpty()) {
-                    throw new InjectionException("Couldn't find a constructor for class: " + aClass.getName());
-                }
-                Constructor<?> constructor = optionalConstructor.get();
-                for (Parameter parameter : constructor.getParameters()) {
-                    if (!parameter.isAnnotationPresent(Value.class)) {
-                        parameters.add(parameter.getType());
-                    }
-                }
-                dependencies.put(aClass, parameters);
-            }
-
-        }
-
-        DirectedAcyclicGraph<Class<?>, DefaultEdge> dag = new DirectedAcyclicGraph<>(DefaultEdge.class);
-        for (Class<?> clazz : dependencies.keySet()) {
-            dag.addVertex(clazz);
-        }
-        for (Map.Entry<Class<?>, Set<Class<?>>> entry : dependencies.entrySet()) {
-            Class<?> key = entry.getKey();
-            Set<Class<?>> value = entry.getValue();
-            for (Class<?> clazz : value) {
-                dag.addEdge(key, clazz);
-            }
-        }
-
-        List<Class<?>> orderedDependencies = new ArrayList<>(StreamSupport.stream(dag.spliterator(), false).toList());
-        Collections.reverse(orderedDependencies);
-        return orderedDependencies;
-    }
-
-    private static Optional<Constructor<?>> receiveConstructor(Class<?> c) {
-        for (Constructor<?> constructor : c.getDeclaredConstructors()) {
-            if (constructor.isAnnotationPresent(Inject.class)) {
-                return Optional.of(constructor);
-            }
-        }
-        try {
-            return Optional.of(c.getConstructor());
-        } catch (Exception e) {
-            return Optional.empty();
         }
     }
 

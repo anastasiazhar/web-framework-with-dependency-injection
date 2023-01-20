@@ -19,7 +19,7 @@ public class MyConfiguration {
 
     @Bean
     public F createF(D d, @Value("f") String value, E e) {
-        System.out.println("constructing F: " + d.sayD() + " " + value + " " + e.sayE());
+//        System.out.println("constructing F: " + d.sayD() + " " + value + " " + e.sayE());
         return new F(d, value, e);
     }
 }

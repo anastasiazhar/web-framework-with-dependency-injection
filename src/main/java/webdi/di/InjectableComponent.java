@@ -52,4 +52,11 @@ public class InjectableComponent implements Injectable {
             return Optional.empty();
         }
     }
+
+    @Override
+    public String toString() {
+        return "InjectableComponent{" +
+                "clazz=" + clazz.getName() +
+                '}';
+    }
 }
