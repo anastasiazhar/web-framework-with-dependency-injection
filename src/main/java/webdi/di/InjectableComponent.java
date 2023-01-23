@@ -1,6 +1,7 @@
 package webdi.di;
 
 import webdi.annotation.Inject;
+import webdi.annotation.Named;
 import webdi.exception.InjectionException;
 
 import java.lang.reflect.Constructor;
@@ -37,6 +38,16 @@ public class InjectableComponent implements Injectable {
             return constructor.newInstance(dependencies);
         } catch (Exception e) {
             throw new InjectionException("Failed to construct class " + clazz.getName(), e);
+        }
+    }
+
+    @Override
+    public Optional<String> getName() {
+        Named named = clazz.getAnnotation(Named.class);
+        if (named == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(named.value());
         }
     }
 

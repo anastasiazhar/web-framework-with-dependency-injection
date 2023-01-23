@@ -1,9 +1,12 @@
 package webdi.di;
 
+import webdi.annotation.Named;
+import webdi.annotation.Value;
 import webdi.exception.InjectionException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Optional;
 
 public class InjectableBean implements Injectable{
 
@@ -31,6 +34,16 @@ public class InjectableBean implements Injectable{
             return method.invoke(configuration, dependencies);
         } catch (Exception e) {
             throw new InjectionException("Couldn't invoke method " + method.getName(), e);
+        }
+    }
+
+    @Override
+    public Optional<String> getName() {
+        Named named = method.getAnnotation(Named.class);
+        if (named == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(named.value());
         }
     }
 
