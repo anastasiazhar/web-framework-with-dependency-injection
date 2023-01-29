@@ -6,9 +6,12 @@ import java.io.InputStreamReader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class AccessingAllClassesInPackage {
+final class AccessingAllClassesInPackage {
 
-    public Set<Class<?>> findAllClassesUsingClassLoader(String packageName) {
+    private AccessingAllClassesInPackage() {
+    }
+
+    public static Set<Class<?>> findAllClassesUsingClassLoader(String packageName) {
         InputStream stream = ClassLoader.getSystemClassLoader()
                 .getResourceAsStream(packageName.replaceAll("[.]", "/"));
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
@@ -18,7 +21,7 @@ class AccessingAllClassesInPackage {
                 .collect(Collectors.toSet());
     }
 
-    private Class<?> getClass(String className, String packageName) {
+    private static Class<?> getClass(String className, String packageName) {
         try {
             return Class.forName(packageName + "."
                     + className.substring(0, className.lastIndexOf('.')));

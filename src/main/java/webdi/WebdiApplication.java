@@ -47,14 +47,11 @@ public final class WebdiApplication {
         }
 
         List<Injectable> injectables = new ArrayList<>();
-        AccessingAllClassesInPackage accessingAllClassesInPackage = new AccessingAllClassesInPackage();
-        Set<Class<?>> classes = accessingAllClassesInPackage.findAllClassesUsingClassLoader(c.getPackageName());
+        Set<Class<?>> classes = AccessingAllClassesInPackage.findAllClassesUsingClassLoader(c.getPackageName());
         for (Class<?> clazz : classes) {
             if (clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Controller.class)) {
                 injectables.add(new InjectableComponent(clazz));
-                continue;
-            }
-            if (clazz.isAnnotationPresent(Configuration.class)) {
+            } else if (clazz.isAnnotationPresent(Configuration.class)) {
                 try {
                     Object configuration = clazz.getConstructor().newInstance();
                     for (Method method : clazz.getMethods()) {
@@ -71,7 +68,9 @@ public final class WebdiApplication {
         Map<Injectable, Set<NamedClass>> dependencies = new HashMap<>();
         for (Injectable i : injectables) {
             String name = i.getName().orElse(null);
-            classInjectableMap.put(new NamedClass(name, i.getType()), i);
+            for (Class<?> clazz : i.getImplementedTypes()) {
+                classInjectableMap.put(new NamedClass(name, clazz), i);
+            }
             Set<NamedClass> parameters = new HashSet<>();
             for (Parameter parameter : i.getParameters()) {
                 if (!parameter.isAnnotationPresent(Value.class)) {
@@ -93,7 +92,6 @@ public final class WebdiApplication {
             Injectable key = dependency.getKey();
             Set<NamedClass> value = dependency.getValue();
             for (NamedClass namedClass : value) {
-                System.out.println(namedClass);
                 dag.addEdge(key, classInjectableMap.get(namedClass));
             }
         }
@@ -109,7 +107,7 @@ public final class WebdiApplication {
                 if (value == null) {
                     if (!instances.containsKey(parameterType)) {
                         throw new InjectionException("Failed to create " + injectable + ", because parameter " + parameterType.getName() +
-                                " wasn't found in the list of crated instances.");
+                                " wasn't found in the list of created instances.");
                     }
                     Map<String, Object> namesMap = instances.get(parameterType);
                     Named named = parameter.getAnnotation(Named.class);
@@ -142,14 +140,16 @@ public final class WebdiApplication {
                 throw new InjectionException("Parameter can't be injected, because it's annotated as @Value, but isn't String.");
             }
             Object newInstance = injectable.construct(arguments.toArray());
-            if (!instances.containsKey(injectable.getType())) {
-                instances.put(injectable.getType(), new HashMap<>());
+            for (Class<?> clazz : injectable.getImplementedTypes()) {
+                if (!instances.containsKey(clazz)) {
+                    instances.put(clazz, new HashMap<>());
+                }
+                Map<String, Object> namesMap = instances.get(clazz);
+                namesMap.put(injectable.getName().orElse(null), newInstance);
             }
-            Map<String, Object> namesMap = instances.get(injectable.getType());
-            namesMap.put(injectable.getName().orElse(null), newInstance);
         }
-        for (Object object : instances.values()) {
-            System.out.println(object.toString());
+        for (Map<String, Object> namedMap : instances.values()) {
+            System.out.println(namedMap.toString());
         }
 
         List<Object> controllers = new ArrayList<>();

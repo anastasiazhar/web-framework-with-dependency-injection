@@ -6,6 +6,9 @@ import webdi.exception.InjectionException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class InjectableComponent implements Injectable {
@@ -23,8 +26,11 @@ public class InjectableComponent implements Injectable {
     }
 
     @Override
-    public Class<?> getType() {
-        return clazz;
+    public List<Class<?>> getImplementedTypes() {
+        List<Class<?>> types = new ArrayList<>();
+        types.add(clazz);
+        types.addAll(List.of(clazz.getInterfaces()));
+        return types;
     }
 
     @Override
@@ -69,5 +75,18 @@ public class InjectableComponent implements Injectable {
         return "InjectableComponent{" +
                 "clazz=" + clazz.getName() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InjectableComponent that = (InjectableComponent) o;
+        return clazz.equals(that.clazz);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clazz);
     }
 }

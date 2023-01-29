@@ -9,11 +9,13 @@ public class AnotherController {
 
     private A a;
     private F f;
+    private MyInterfaceImplementation myInterfaceImplementation;
 
     @Inject
-    public AnotherController(A a, F f) {
+    public AnotherController(A a, F f, MyInterfaceImplementation myInterfaceImplementation) {
         this.a = a;
         this.f = f;
+        this.myInterfaceImplementation = myInterfaceImplementation;
     }
 
     @Route("/smth")

@@ -6,6 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="551f9a2e-b7f3-4906-91c0-c5677c53fe9c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/AccessingAllClassesInPackage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/AccessingAllClassesInPackage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/Injectable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/Injectable.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,10 +21,10 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Class" />
         <option value="AnnotationType" />
         <option value="Record" />
+        <option value="Interface" />
       </list>
     </option>
   </component>
