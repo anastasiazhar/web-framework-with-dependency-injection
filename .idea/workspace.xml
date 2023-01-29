@@ -6,13 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="551f9a2e-b7f3-4906-91c0-c5677c53fe9c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/MyConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/MyController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/Injectable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/Injectable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

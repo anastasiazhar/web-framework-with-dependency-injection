@@ -12,6 +12,7 @@ public class MyController {
     private final double d;
     private final String exampleA;
     private final String exampleB;
+    private final MyInterface myInterface;
 
 
     @Inject
@@ -23,8 +24,8 @@ public class MyController {
             @Value("b") Boolean b,
             @Value("double") double d,
             @Named("example-a") String exampleA,
-            @Named("example-b") String exampleB
-    ) {
+            @Named("example-b") String exampleB,
+            MyInterface myInterface) {
         this.homemessage = homemessage;
         this.c = c;
         this.hometext = hometext;
@@ -33,6 +34,7 @@ public class MyController {
         this.d = d;
         this.exampleA = exampleA;
         this.exampleB = exampleB;
+        this.myInterface = myInterface;
     }
 
     @Route("/home")
@@ -47,7 +49,7 @@ public class MyController {
 
     @Route("/furry")
     public String furryPage() {
-        return "<p>" + exampleA + "</p><p>" + exampleB + "</p>";
+        return "<p>" + exampleA + "</p><p>" + myInterface.myMethod() + "</p>";
     }
 
     public String pornContent() {
