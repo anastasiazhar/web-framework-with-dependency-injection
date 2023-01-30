@@ -18,4 +18,20 @@ public class A {
     public String getA() {
         return "hi i'm A, B said: " + b.getB() + "..." + c.getC();
     }
+
+    public B getB() {
+        return b;
+    }
+
+    public void setB(B b) {
+        this.b = b;
+    }
+
+    public C getC() {
+        return c;
+    }
+
+    public void setC(C c) {
+        this.c = c;
+    }
 }

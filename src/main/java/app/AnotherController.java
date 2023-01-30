@@ -52,7 +52,7 @@ public class AnotherController {
     }
 
     @Route(value = "/object", contentType = "application/json")
-    public Object objectRoute() {
-        return a;
+    public MyClass objectRoute() {
+        return new MyClass("a", 1);
     }
 }

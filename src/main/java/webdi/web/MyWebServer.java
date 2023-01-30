@@ -1,5 +1,8 @@
 package webdi.web;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import webdi.exception.WebServerException;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -86,13 +89,19 @@ public class MyWebServer implements Runnable{
         HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
         if (handlers.containsKey(handlerKey)) {
             RouteHandler routeHandler = handlers.get(handlerKey);
-            // TODO: fix
-            String html = (String) routeHandler.execute();
+            Object returnValue = routeHandler.execute();
+            ByteArrayOutputStream body = new ByteArrayOutputStream();
+            if (returnValue instanceof String) {
+                body.write(((String) returnValue).getBytes());
+            } else if (routeHandler.getContentType().equals("application/json")) {
+                ObjectMapper mapper = new ObjectMapper();
+                body.write(mapper.writeValueAsString(returnValue).getBytes());
+            } else {
+                throw new WebServerException("Method annotated as @Route doesn't return a String");
+            }
             StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
             HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
-            ByteArrayOutputStream body = new ByteArrayOutputStream();
-            body.write(html.getBytes(StandardCharsets.UTF_8));
             headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
             return new MyResponse(statusLine, headers, body);
         } else {

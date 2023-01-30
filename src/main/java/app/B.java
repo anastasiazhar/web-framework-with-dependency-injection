@@ -16,4 +16,12 @@ public class B {
     public String getB() {
         return "i'm B - Big dick, C said: " + c.getC();
     }
+
+    public C getC() {
+        return c;
+    }
+
+    public void setC(C c) {
+        this.c = c;
+    }
 }

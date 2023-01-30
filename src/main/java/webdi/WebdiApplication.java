@@ -182,7 +182,7 @@ public final class WebdiApplication {
             Method[] methods = objectClass.getMethods();
             for (Method method : methods) {
                 Route route = method.getAnnotation(Route.class);
-                if (route != null && method.getReturnType() == String.class) {
+                if (route != null) {
                     map.put(new HandlerKey(route.method(), route.value()), new RouteHandler(method, controller, objectClass));
                 }
             }
