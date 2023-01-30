@@ -2,7 +2,7 @@ package app;
 
 import webdi.annotation.*;
 
-@Controller
+@Controller(contentType = "text/html")
 public class MyController {
     private final String homemessage;
     private final String hometext;

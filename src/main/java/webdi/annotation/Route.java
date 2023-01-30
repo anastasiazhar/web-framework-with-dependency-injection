@@ -11,4 +11,5 @@ public @interface Route {
 
     String method() default "GET";
     String value();
+    String contentType() default "";
 }

@@ -10,6 +10,7 @@ import webdi.di.NamedClass;
 import webdi.exception.InjectionException;
 import webdi.web.HandlerKey;
 import webdi.web.MyWebServer;
+import webdi.web.RouteHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +22,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 public final class WebdiApplication {
@@ -159,7 +159,7 @@ public final class WebdiApplication {
             }
         }
 
-        HashMap<HandlerKey, Supplier<String>> routes = extractRoutes(controllers);
+        HashMap<HandlerKey, RouteHandler> routes = extractRoutes(controllers);
 
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             int counter = 1;
@@ -175,21 +175,15 @@ public final class WebdiApplication {
         }
     }
 
-    private static HashMap<HandlerKey, Supplier<String>> extractRoutes(List<Object> controllers) {
-        HashMap<HandlerKey, Supplier<String>> map = new HashMap<>();
+    private static HashMap<HandlerKey, RouteHandler> extractRoutes(List<Object> controllers) {
+        HashMap<HandlerKey, RouteHandler> map = new HashMap<>();
         for (Object controller : controllers) {
             Class<?> objectClass = controller.getClass();
             Method[] methods = objectClass.getMethods();
             for (Method method : methods) {
                 Route route = method.getAnnotation(Route.class);
                 if (route != null && method.getReturnType() == String.class) {
-                    map.put(new HandlerKey(route.method(), route.value()), () -> {
-                        try {
-                            return (String)method.invoke(controller);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    map.put(new HandlerKey(route.method(), route.value()), new RouteHandler(method, controller, objectClass));
                 }
             }
         }

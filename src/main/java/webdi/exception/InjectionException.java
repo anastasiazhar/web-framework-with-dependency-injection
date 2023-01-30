@@ -1,6 +1,6 @@
 package webdi.exception;
 
-public class InjectionException extends RuntimeException{
+public class InjectionException extends RuntimeException {
 
     public InjectionException() {
     }
