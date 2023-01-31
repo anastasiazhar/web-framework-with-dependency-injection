@@ -20,8 +20,8 @@
         <option value="AnnotationType" />
         <option value="Record" />
         <option value="Interface" />
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>

@@ -4,6 +4,10 @@ import webdi.annotation.Controller;
 import webdi.annotation.Inject;
 import webdi.annotation.Route;
 import webdi.web.NamedFile;
+import webdi.web.ResponseEntity;
+import webdi.web.Status;
+
+import java.util.Optional;
 
 @Controller(contentType = "text/html")
 public class AnotherController {
@@ -60,5 +64,10 @@ public class AnotherController {
     @Route(value = "/image", contentType = "image/jpeg")
     public NamedFile imageRoute() {
         return new NamedFile("image.jpg");
+    }
+
+    @Route("/test")
+    public ResponseEntity responseEntityRoute() {
+        return new ResponseEntity("i fuck your mom and she likes it", Optional.of(Status.NOT_IMPLEMENTED));
     }
 }

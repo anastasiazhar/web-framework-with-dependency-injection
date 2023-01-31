@@ -1,5 +1,6 @@
 package webdi.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import webdi.exception.WebServerException;
 
@@ -89,19 +90,19 @@ public class MyWebServer implements Runnable{
         HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
         if (handlers.containsKey(handlerKey)) {
             RouteHandler routeHandler = handlers.get(handlerKey);
-            Object returnValue = routeHandler.execute();
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-            if (returnValue instanceof String) {
-                body.write(((String) returnValue).getBytes());
-            } else if (routeHandler.getContentType().equals("application/json")) {
-                ObjectMapper mapper = new ObjectMapper();
-                body.write(mapper.writeValueAsString(returnValue).getBytes());
-            } else if (returnValue instanceof NamedFile) {
-                body.write(((NamedFile) returnValue).bytes);
+            StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");;
+            if (routeHandler.execute() instanceof ResponseEntity responseEntity) {
+                body = getBody(responseEntity.body, routeHandler.getContentType());
+                if (responseEntity.responseCode.isPresent()) {
+                    Status status = responseEntity.responseCode.get();
+                    statusLine = new StatusLine("HTTP/1.1", status.code, status.reason) ;
+                }
             } else {
-                throw new WebServerException("Method annotated as @Route doesn't return a String");
+                String contentType = routeHandler.getContentType();
+                Object returnValue = routeHandler.execute();
+                body = getBody(returnValue, contentType);
             }
-            StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
             HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
             headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
@@ -113,6 +114,21 @@ public class MyWebServer implements Runnable{
             body.write("<h1>404</h1>".getBytes());
             return new MyResponse(statusLine, headers, body);
         }
+    }
+
+    ByteArrayOutputStream getBody(Object returnValue, String contentType) throws Exception {
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        if (returnValue instanceof String) {
+            body.write(((String) returnValue).getBytes());
+        } else if (contentType.equals("application/json")) {
+            ObjectMapper mapper = new ObjectMapper();
+            body.write(mapper.writeValueAsString(returnValue).getBytes());
+        } else if (returnValue instanceof NamedFile) {
+            body.write(((NamedFile) returnValue).bytes);
+        } else {
+            throw new WebServerException("Method annotated as @Route has unsupported return type");
+        }
+        return body;
     }
 }
 
