@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="551f9a2e-b7f3-4906-91c0-c5677c53fe9c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/A.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/A.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/B.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/B.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/webdi/web/MyWebServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/MyWebServer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -24,6 +21,7 @@
         <option value="Record" />
         <option value="Interface" />
         <option value="Class" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -41,15 +39,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/anast/IdeaProjects/final/webserver&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "last_opened_file_path": "C:/Users/anast/IdeaProjects/final/webserver/src/main/resources",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\anast\IdeaProjects\final\webserver\src\main\resources" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="app.Main" />

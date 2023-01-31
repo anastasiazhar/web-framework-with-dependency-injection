@@ -3,6 +3,7 @@ package app;
 import webdi.annotation.Controller;
 import webdi.annotation.Inject;
 import webdi.annotation.Route;
+import webdi.web.NamedFile;
 
 @Controller(contentType = "text/html")
 public class AnotherController {
@@ -54,5 +55,10 @@ public class AnotherController {
     @Route(value = "/object", contentType = "application/json")
     public MyClass objectRoute() {
         return new MyClass("a", 1);
+    }
+
+    @Route(value = "/image", contentType = "image/jpeg")
+    public NamedFile imageRoute() {
+        return new NamedFile("image.jpg");
     }
 }

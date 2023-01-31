@@ -96,6 +96,8 @@ public class MyWebServer implements Runnable{
             } else if (routeHandler.getContentType().equals("application/json")) {
                 ObjectMapper mapper = new ObjectMapper();
                 body.write(mapper.writeValueAsString(returnValue).getBytes());
+            } else if (returnValue instanceof NamedFile) {
+                body.write(((NamedFile) returnValue).bytes);
             } else {
                 throw new WebServerException("Method annotated as @Route doesn't return a String");
             }
