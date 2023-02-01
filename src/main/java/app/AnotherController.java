@@ -68,6 +68,6 @@ public class AnotherController {
 
     @Route("/test")
     public ResponseEntity responseEntityRoute() {
-        return new ResponseEntity("i fuck your mom and she likes it", Optional.of(Status.NOT_IMPLEMENTED));
+        return ResponseEntity.of("i fuck your mom and she likes it", Status.NOT_IMPLEMENTED);
     }
 }

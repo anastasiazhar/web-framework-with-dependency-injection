@@ -93,9 +93,9 @@ public class MyWebServer implements Runnable{
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");;
             if (routeHandler.execute() instanceof ResponseEntity responseEntity) {
-                body = getBody(responseEntity.body, routeHandler.getContentType());
-                if (responseEntity.responseCode.isPresent()) {
-                    Status status = responseEntity.responseCode.get();
+                body = getBody(responseEntity.getBody(), routeHandler.getContentType());
+                if (responseEntity.getStatus().isPresent()) {
+                    Status status = responseEntity.getStatus().get();
                     statusLine = new StatusLine("HTTP/1.1", status.code, status.reason) ;
                 }
             } else {
@@ -105,6 +105,7 @@ public class MyWebServer implements Runnable{
             }
             HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
+            // TODO: handle empty body
             headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
             return new MyResponse(statusLine, headers, body);
         } else {
