@@ -1,12 +1,12 @@
 package app;
 
-import webdi.annotation.Controller;
-import webdi.annotation.Inject;
-import webdi.annotation.Route;
+import jdk.jfr.Name;
+import webdi.annotation.*;
 import webdi.web.NamedFile;
 import webdi.web.ResponseEntity;
 import webdi.web.Status;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Optional;
 
 @Controller(contentType = "text/html")
@@ -74,5 +74,15 @@ public class AnotherController {
     @Route("/empty")
     public ResponseEntity emptyBodyRoute() {
         return ResponseEntity.noContent();
+    }
+
+    @Route(method = "POST",value = "/body", contentType = "text/plain")
+    public String testBody(@BodyParam ByteArrayOutputStream stream) {
+        return "Hello, " + stream.toString();
+    }
+
+    @Route("/error")
+    public String error(@Value("") String d) {
+        return "d " + d;
     }
 }

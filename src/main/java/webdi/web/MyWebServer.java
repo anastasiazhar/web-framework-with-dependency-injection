@@ -2,12 +2,19 @@ package webdi.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import webdi.annotation.BodyParam;
+import webdi.annotation.PathParam;
+import webdi.annotation.QueryParam;
 import webdi.exception.WebServerException;
 
 import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Parameter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -87,14 +94,26 @@ public class MyWebServer implements Runnable{
     }
 
     MyResponse handleRequest(MyRequest request) throws Exception {
-        System.out.println("2 request = " + request);
         HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
         if (handlers.containsKey(handlerKey)) {
             RouteHandler routeHandler = handlers.get(handlerKey);
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-            StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");;
-            if (routeHandler.execute() instanceof ResponseEntity responseEntity) {
-                // TODO: handle empty body
+            StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
+            Object returnValue;
+            List<Object> dependencies = new ArrayList<>();
+            for (Parameter parameter : routeHandler.getParameters()) {
+                if (parameter.getAnnotation(BodyParam.class) != null) {
+                    dependencies.add(request.requestBody());
+                } else if (parameter.getAnnotation(PathParam.class) != null) {
+                    // do smth
+                } else if (parameter.getAnnotation(QueryParam.class) != null) {
+                    // do smth
+                } else {
+                    throw new WebServerException("Parameter has unsupported annotation");
+                }
+            }
+            returnValue = routeHandler.execute(dependencies.toArray());
+            if (returnValue instanceof ResponseEntity responseEntity) {
                 if (responseEntity.getBody() == null) {
                     return new MyResponse(new StatusLine("HTTP/1.1", responseEntity.getStatus().get().code, responseEntity.getStatus().get().reason),
                             new HashMap<>(), body);
@@ -106,7 +125,6 @@ public class MyWebServer implements Runnable{
                 }
             } else {
                 String contentType = routeHandler.getContentType();
-                Object returnValue = routeHandler.execute();
                 body = getBody(returnValue, contentType);
             }
             HashMap<String, String> headers = new HashMap<>();

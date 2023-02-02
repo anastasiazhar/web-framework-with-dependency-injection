@@ -5,6 +5,7 @@ import webdi.annotation.Route;
 import webdi.exception.WebServerException;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 public class RouteHandler {
     private final Method method;
@@ -19,9 +20,9 @@ public class RouteHandler {
         this.contentType = findContentType(method, clazz);
     }
 
-    public Object execute() {
+    public Object execute(Object[] dependencies) {
         try {
-            return method.invoke(controller);
+            return method.invoke(controller, dependencies);
         } catch (Exception e) {
             throw new WebServerException("Couldn't invoke method " + method.getName() + " from controller " + clazz.getName(), e);
         }
@@ -29,6 +30,10 @@ public class RouteHandler {
 
     public String getContentType() {
         return contentType;
+    }
+
+    public Parameter[] getParameters() {
+        return method.getParameters();
     }
 
     private static String findContentType(Method method, Class<?> clazz) {
