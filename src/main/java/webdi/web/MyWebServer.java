@@ -59,10 +59,10 @@ public class MyWebServer implements Runnable{
                 }
             }
             ByteArrayOutputStream body = new ByteArrayOutputStream();
-            if (requestHeaders.containsKey(CONTENT_LENGTH_HEADER_NAME) || requestHeaders.containsKey(CONTENT_TYPE_HEADER_NAME)) {
-                int current;
-                while ((current = bufferedReader.read()) != -1) {
-                    body.write((byte) current);
+            if (requestHeaders.containsKey(CONTENT_LENGTH_HEADER_NAME) && requestHeaders.containsKey(CONTENT_TYPE_HEADER_NAME)) {
+                int contentLength = Integer.parseInt(requestHeaders.get(CONTENT_LENGTH_HEADER_NAME));
+                for (int i = 0; i < contentLength; i++) {
+                    body.write((byte) bufferedReader.read());
                 }
             }
             MyResponse response = handleRequest(new MyRequest(requestLine, requestHeaders, body));
@@ -87,16 +87,22 @@ public class MyWebServer implements Runnable{
     }
 
     MyResponse handleRequest(MyRequest request) throws Exception {
+        System.out.println("2 request = " + request);
         HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
         if (handlers.containsKey(handlerKey)) {
             RouteHandler routeHandler = handlers.get(handlerKey);
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");;
             if (routeHandler.execute() instanceof ResponseEntity responseEntity) {
+                // TODO: handle empty body
+                if (responseEntity.getBody() == null) {
+                    return new MyResponse(new StatusLine("HTTP/1.1", responseEntity.getStatus().get().code, responseEntity.getStatus().get().reason),
+                            new HashMap<>(), body);
+                }
                 body = getBody(responseEntity.getBody(), routeHandler.getContentType());
                 if (responseEntity.getStatus().isPresent()) {
                     Status status = responseEntity.getStatus().get();
-                    statusLine = new StatusLine("HTTP/1.1", status.code, status.reason) ;
+                    statusLine = new StatusLine("HTTP/1.1", status.code, status.reason);
                 }
             } else {
                 String contentType = routeHandler.getContentType();
@@ -105,11 +111,10 @@ public class MyWebServer implements Runnable{
             }
             HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
-            // TODO: handle empty body
             headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
             return new MyResponse(statusLine, headers, body);
         } else {
-            StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found (you dolboyeb)");
+            StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found");
             HashMap<String, String> headers = new HashMap<>();
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             body.write("<h1>404</h1>".getBytes());

@@ -70,4 +70,9 @@ public class AnotherController {
     public ResponseEntity responseEntityRoute() {
         return ResponseEntity.of("i fuck your mom and she likes it", Status.NOT_IMPLEMENTED);
     }
+
+    @Route("/empty")
+    public ResponseEntity emptyBodyRoute() {
+        return ResponseEntity.noContent();
+    }
 }
