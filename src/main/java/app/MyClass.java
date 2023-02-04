@@ -10,6 +10,9 @@ public class MyClass {
         this.n = n;
     }
 
+    public MyClass() {
+    }
+
     public String getS() {
         return s;
     }

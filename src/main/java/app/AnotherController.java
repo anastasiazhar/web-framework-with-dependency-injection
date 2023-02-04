@@ -81,6 +81,12 @@ public class AnotherController {
         return "Hello, " + stream.toString();
     }
 
+    @Route(method = "POST", value = "/json", contentType = "application/json")
+    public MyClass bodyToJson(@BodyParam MyClass object) {
+        object.setN(8);
+        return object;
+    }
+
     @Route("/error")
     public String error(@Value("") String d) {
         return "d " + d;

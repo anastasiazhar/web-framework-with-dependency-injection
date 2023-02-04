@@ -103,11 +103,17 @@ public class MyWebServer implements Runnable{
             List<Object> dependencies = new ArrayList<>();
             for (Parameter parameter : routeHandler.getParameters()) {
                 if (parameter.getAnnotation(BodyParam.class) != null) {
-                    dependencies.add(request.requestBody());
+                    if (parameter.getType() == ByteArrayOutputStream.class) {
+                        dependencies.add(request.requestBody());
+                    }
+                    ObjectMapper mapper = new ObjectMapper();
+                    Object object = mapper.readValue(request.requestBody().toByteArray(), parameter.getType());
+                    dependencies.add(object);
+                    // TODO: add annotations
                 } else if (parameter.getAnnotation(PathParam.class) != null) {
-                    // do smth
+                    throw new WebServerException("Parameter has unsupported annotation");
                 } else if (parameter.getAnnotation(QueryParam.class) != null) {
-                    // do smth
+                    throw new WebServerException("Parameter has unsupported annotation");
                 } else {
                     throw new WebServerException("Parameter has unsupported annotation");
                 }
