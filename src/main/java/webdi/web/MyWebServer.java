@@ -12,10 +12,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class MyWebServer implements Runnable{
@@ -49,6 +46,7 @@ public class MyWebServer implements Runnable{
                         String[] split = currentLine.split(" ");
                         String method = split[0];
                         String path = split[1];
+                        System.out.println(path);
                         String protocol = split[2];
                         requestLine = new RequestLine(method, path, protocol);
                         currentRequestPart = RequestPart.REQUEST_HEADER;
@@ -94,7 +92,14 @@ public class MyWebServer implements Runnable{
     }
 
     MyResponse handleRequest(MyRequest request) throws Exception {
-        HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), request.requestLine().path());
+        String requestPathParts[] = request.requestLine().path().split("\\?");
+        String[] splitParameters = requestPathParts[1].split("&");
+        Map<String, String> queryParameters = new HashMap<>();
+        for (String p : splitParameters) {
+            String[] pair = p.split("=");
+            queryParameters.put(pair[0], pair[1]);
+        }
+        HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), requestPathParts[0]);
         if (handlers.containsKey(handlerKey)) {
             RouteHandler routeHandler = handlers.get(handlerKey);
             ByteArrayOutputStream body = new ByteArrayOutputStream();
@@ -107,13 +112,29 @@ public class MyWebServer implements Runnable{
                         dependencies.add(request.requestBody());
                     }
                     ObjectMapper mapper = new ObjectMapper();
-                    Object object = mapper.readValue(request.requestBody().toByteArray(), parameter.getType());
-                    dependencies.add(object);
-                    // TODO: add annotations
+                    Object argument = mapper.readValue(request.requestBody().toByteArray(), parameter.getType());
+                    dependencies.add(argument);
                 } else if (parameter.getAnnotation(PathParam.class) != null) {
+                    // TODO: PathParam
                     throw new WebServerException("Parameter has unsupported annotation");
                 } else if (parameter.getAnnotation(QueryParam.class) != null) {
-                    throw new WebServerException("Parameter has unsupported annotation");
+                    String key = parameter.getAnnotation(QueryParam.class).value();
+                    if (!queryParameters.containsKey(key)) {
+                        throw new WebServerException("No query parameter named " + key);
+                    }
+                    String value = queryParameters.get(key);
+                    Class<?> parameterType = parameter.getType();
+                    if (parameterType == String.class) {
+                        dependencies.add(value);
+                    } else if (parameterType == Integer.class || parameterType == int.class) {
+                        dependencies.add(Integer.valueOf(value));
+                    } else if (parameterType == Double.class || parameterType == double.class) {
+                        dependencies.add(Double.valueOf(value));
+                    } else if (parameterType == Boolean.class || parameterType == boolean.class) {
+                        dependencies.add(Boolean.valueOf(value));
+                    } else {
+                        throw new WebServerException("Unsupported argument type " + parameterType.getName());
+                    }
                 } else {
                     throw new WebServerException("Parameter has unsupported annotation");
                 }

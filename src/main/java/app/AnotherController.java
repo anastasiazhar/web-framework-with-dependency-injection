@@ -91,4 +91,9 @@ public class AnotherController {
     public String error(@Value("") String d) {
         return "d " + d;
     }
+
+    @Route("/query")
+    public String queryTest(@QueryParam("a") String a, @QueryParam("b") int b) {
+        return "a is " + a + ", b is " + b;
+    }
 }
