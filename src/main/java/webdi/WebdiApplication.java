@@ -148,9 +148,6 @@ public final class WebdiApplication {
                 namesMap.put(injectable.getName().orElse(null), newInstance);
             }
         }
-        for (Map<String, Object> namedMap : instances.values()) {
-            System.out.println(namedMap.toString());
-        }
 
         List<Object> controllers = new ArrayList<>();
         for (Map.Entry<Class<?>, Map<String, Object>> entry : instances.entrySet()) {

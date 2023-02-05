@@ -46,7 +46,6 @@ public class MyWebServer implements Runnable{
                         String[] split = currentLine.split(" ");
                         String method = split[0];
                         String path = split[1];
-                        System.out.println(path);
                         String protocol = split[2];
                         requestLine = new RequestLine(method, path, protocol);
                         currentRequestPart = RequestPart.REQUEST_HEADER;
@@ -93,11 +92,14 @@ public class MyWebServer implements Runnable{
 
     MyResponse handleRequest(MyRequest request) throws Exception {
         String requestPathParts[] = request.requestLine().path().split("\\?");
-        String[] splitParameters = requestPathParts[1].split("&");
+        System.out.println(requestPathParts[0]);
         Map<String, String> queryParameters = new HashMap<>();
-        for (String p : splitParameters) {
-            String[] pair = p.split("=");
-            queryParameters.put(pair[0], pair[1]);
+        if (requestPathParts.length > 1) {
+            String[] splitParameters = requestPathParts[1].split("&");
+            for (String p : splitParameters) {
+                String[] pair = p.split("=");
+                queryParameters.put(pair[0], pair[1]);
+            }
         }
         HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), requestPathParts[0]);
         if (handlers.containsKey(handlerKey)) {
