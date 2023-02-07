@@ -8,9 +8,7 @@ import webdi.di.InjectableBean;
 import webdi.di.InjectableComponent;
 import webdi.di.NamedClass;
 import webdi.exception.InjectionException;
-import webdi.web.HandlerKey;
-import webdi.web.MyWebServer;
-import webdi.web.RouteHandler;
+import webdi.web.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -157,12 +155,13 @@ public final class WebdiApplication {
         }
 
         HashMap<HandlerKey, RouteHandler> routes = extractRoutes(controllers);
+        Router router = new TrieRouter(routes);
 
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             int counter = 1;
             while (true) {
                 Socket socket = serverSocket.accept();
-                MyWebServer webServer = new MyWebServer(socket, routes);
+                MyWebServer webServer = new MyWebServer(socket, router);
                 Thread thread = new Thread(webServer, "[" + counter + "]");
                 thread.start();
                 counter += 1;

@@ -96,4 +96,29 @@ public class AnotherController {
     public String queryTest(@QueryParam("a") String a, @QueryParam("b") int b) {
         return "a is " + a + ", b is " + b;
     }
+
+    @Route("/trie")
+    public String trieTest() {
+        return "hi";
+    }
+
+    @Route("/trie/example")
+    public String trieTestExample() {
+        return "example";
+    }
+
+    @Route("/trie/{name}")
+    public String trieTestName(@PathParam("name") String name) {
+        return "hi, " + name;
+    }
+
+    @Route("/trie/{name}/smth")
+    public String trieTestSmth(@PathParam("name") String name) {
+        return "another hi, " + name;
+    }
+
+    @Route("/trie/{id:[1-9][0-9]*}/word")
+    public String trieTestWord(@PathParam("id") int id) {
+        return "hello, id " + id;
+    }
 }

@@ -22,11 +22,11 @@ public class MyWebServer implements Runnable{
     public static final String CRLF = "\r\n";
 
     private final Socket socket;
-    private final HashMap<HandlerKey, RouteHandler> handlers;
+    private final Router router;
 
-    public MyWebServer(Socket socket, HashMap<HandlerKey, RouteHandler> handlers) {
+    public MyWebServer(Socket socket, Router router) {
         this.socket = socket;
-        this.handlers = handlers;
+        this.router = router;
     }
 
     @Override
@@ -92,7 +92,6 @@ public class MyWebServer implements Runnable{
 
     MyResponse handleRequest(MyRequest request) throws Exception {
         String requestPathParts[] = request.requestLine().path().split("\\?");
-        System.out.println(requestPathParts[0]);
         Map<String, String> queryParameters = new HashMap<>();
         if (requestPathParts.length > 1) {
             String[] splitParameters = requestPathParts[1].split("&");
@@ -101,9 +100,11 @@ public class MyWebServer implements Runnable{
                 queryParameters.put(pair[0], pair[1]);
             }
         }
-        HandlerKey handlerKey = new HandlerKey(request.requestLine().method(), requestPathParts[0]);
-        if (handlers.containsKey(handlerKey)) {
-            RouteHandler routeHandler = handlers.get(handlerKey);
+        Optional<RoutedRequest> optionalRoutedRequest = router.route(request.requestLine());
+        if (optionalRoutedRequest.isPresent()) {
+            RoutedRequest routedRequest = optionalRoutedRequest.get();
+            RouteHandler routeHandler = routedRequest.routeHandler();
+            Map<String, String> pathParameters = routedRequest.pathParameters();
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             StatusLine statusLine = new StatusLine("HTTP/1.1", 200, "OK");
             Object returnValue;
@@ -117,8 +118,23 @@ public class MyWebServer implements Runnable{
                     Object argument = mapper.readValue(request.requestBody().toByteArray(), parameter.getType());
                     dependencies.add(argument);
                 } else if (parameter.getAnnotation(PathParam.class) != null) {
-                    // TODO: PathParam
-                    throw new WebServerException("Parameter has unsupported annotation");
+                    String key = parameter.getAnnotation(PathParam.class).value();
+                    if (!pathParameters.containsKey(key)) {
+                        throw new WebServerException("No path parameter named " + key);
+                    }
+                    String value = pathParameters.get(key);
+                    Class<?> parameterType = parameter.getType();
+                    if (parameterType == String.class) {
+                        dependencies.add(value);
+                    } else if (parameterType == Integer.class || parameterType == int.class) {
+                        dependencies.add(Integer.valueOf(value));
+                    } else if (parameterType == Double.class || parameterType == double.class) {
+                        dependencies.add(Double.valueOf(value));
+                    } else if (parameterType == Boolean.class || parameterType == boolean.class) {
+                        dependencies.add(Boolean.valueOf(value));
+                    } else {
+                        throw new WebServerException("Unsupported argument type " + parameterType.getName());
+                    }
                 } else if (parameter.getAnnotation(QueryParam.class) != null) {
                     String key = parameter.getAnnotation(QueryParam.class).value();
                     if (!queryParameters.containsKey(key)) {
