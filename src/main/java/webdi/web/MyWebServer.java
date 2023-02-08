@@ -2,6 +2,7 @@ package webdi.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import webdi.ConvertingParameters;
 import webdi.annotation.BodyParam;
 import webdi.annotation.PathParam;
 import webdi.annotation.QueryParam;
@@ -124,17 +125,8 @@ public class MyWebServer implements Runnable{
                     }
                     String value = pathParameters.get(key);
                     Class<?> parameterType = parameter.getType();
-                    if (parameterType == String.class) {
-                        dependencies.add(value);
-                    } else if (parameterType == Integer.class || parameterType == int.class) {
-                        dependencies.add(Integer.valueOf(value));
-                    } else if (parameterType == Double.class || parameterType == double.class) {
-                        dependencies.add(Double.valueOf(value));
-                    } else if (parameterType == Boolean.class || parameterType == boolean.class) {
-                        dependencies.add(Boolean.valueOf(value));
-                    } else {
-                        throw new WebServerException("Unsupported argument type " + parameterType.getName());
-                    }
+                    dependencies.add(ConvertingParameters.convertType(value, parameterType)
+                            .orElseThrow(() -> new WebServerException("Failed to read path parameter " + value + " because it has unsupported type " + parameterType)));
                 } else if (parameter.getAnnotation(QueryParam.class) != null) {
                     String key = parameter.getAnnotation(QueryParam.class).value();
                     if (!queryParameters.containsKey(key)) {
@@ -142,17 +134,8 @@ public class MyWebServer implements Runnable{
                     }
                     String value = queryParameters.get(key);
                     Class<?> parameterType = parameter.getType();
-                    if (parameterType == String.class) {
-                        dependencies.add(value);
-                    } else if (parameterType == Integer.class || parameterType == int.class) {
-                        dependencies.add(Integer.valueOf(value));
-                    } else if (parameterType == Double.class || parameterType == double.class) {
-                        dependencies.add(Double.valueOf(value));
-                    } else if (parameterType == Boolean.class || parameterType == boolean.class) {
-                        dependencies.add(Boolean.valueOf(value));
-                    } else {
-                        throw new WebServerException("Unsupported argument type " + parameterType.getName());
-                    }
+                    dependencies.add(ConvertingParameters.convertType(value, parameterType)
+                            .orElseThrow(() -> new WebServerException("Failed to read query parameter " + value + " because it has unsupported type " + parameterType)));
                 } else {
                     throw new WebServerException("Parameter has unsupported annotation");
                 }

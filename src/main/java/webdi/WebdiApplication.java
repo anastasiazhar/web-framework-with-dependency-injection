@@ -119,23 +119,9 @@ public final class WebdiApplication {
                 if (!configValues.containsKey(value.value())) {
                     throw new InjectionException("Parameter can't be injected, because the value can't be found in config.");
                 }
-                if (parameterType.equals(String.class)) {
-                    arguments.add(configValues.get(value.value()));
-                    continue;
-                }
-                if (parameterType.equals(Integer.class) || parameterType.equals(int.class)) {
-                    arguments.add(Integer.valueOf(configValues.get(value.value())));
-                    continue;
-                }
-                if (parameterType.equals(Boolean.class) || parameterType.equals(boolean.class)) {
-                    arguments.add(Boolean.valueOf(configValues.get(value.value())));
-                    continue;
-                }
-                if (parameterType.equals(Double.class) || parameterType.equals(double.class)) {
-                    arguments.add(Double.valueOf(configValues.get(value.value())));
-                    continue;
-                }
-                throw new InjectionException("Parameter can't be injected, because it's annotated as @Value, but isn't String.");
+                String parameterValue = configValues.get(value.value());
+                arguments.add(ConvertingParameters.convertType(parameterValue, parameterType).orElseThrow(() -> new InjectionException("Failed to inject value " +
+                        parameterValue + " from config, because it has unsupported type " + parameterType.getName())));
             }
             Object newInstance = injectable.construct(arguments.toArray());
             for (Class<?> clazz : injectable.getImplementedTypes()) {
