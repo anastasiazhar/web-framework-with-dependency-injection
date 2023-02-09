@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import webdi.ConvertingParameters;
 import webdi.annotation.BodyParam;
+import webdi.annotation.Header;
 import webdi.annotation.PathParam;
 import webdi.annotation.QueryParam;
 import webdi.exception.WebServerException;
@@ -56,9 +57,9 @@ public class MyWebServer implements Runnable{
                             currentRequestPart = RequestPart.REQUEST_BODY;
                             break loop;
                         }
-                        String[] split = currentLine.split(": ?");
-                        String name = split[0].toLowerCase();
-                        String value = split[1];
+                        int index = currentLine.indexOf(":");
+                        String name = currentLine.substring(0, index).trim().toLowerCase();
+                        String value = currentLine.substring(index + 1).trim();
                         requestHeaders.put(name, value);
                     }
                 }
@@ -91,7 +92,6 @@ public class MyWebServer implements Runnable{
 
     }
 
-    // TODO: do something with headers
     MyResponse handleRequest(MyRequest request) throws Exception {
         String requestPathParts[] = request.requestLine().path().split("\\?");
         Map<String, String> queryParameters = new HashMap<>();
@@ -137,8 +137,13 @@ public class MyWebServer implements Runnable{
                     Class<?> parameterType = parameter.getType();
                     dependencies.add(ConvertingParameters.convertType(value, parameterType)
                             .orElseThrow(() -> new WebServerException("Failed to read query parameter " + value + " because it has unsupported type " + parameterType)));
+                } else if (parameter.getAnnotation(Header.class) != null) {
+                    String key = parameter.getAnnotation(Header.class).value().toLowerCase();
+                    request.requestHeaders().forEach((name, value) -> System.out.println(name + " " + value));
+                    dependencies.add(request.requestHeaders().get(key));
                 } else {
                     throw new WebServerException("Parameter has unsupported annotation");
+
                 }
             }
             returnValue = routeHandler.execute(dependencies.toArray());

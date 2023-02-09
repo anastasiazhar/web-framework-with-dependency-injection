@@ -75,8 +75,8 @@ public class AnotherController {
     }
 
     @Route("/headers")
-    public ResponseEntity returnHeaders() {
-        return ResponseEntity.Builder.newInstance().body("i fuck your mom").header("X", "XXX").build();
+    public ResponseEntity returnHeaders(@Header("User-Agent") String userAgent) {
+        return ResponseEntity.Builder.newInstance().body("i fuck your mom using " + userAgent).header("X", "XXX").build();
     }
 
     @Route(method = "POST",value = "/body", contentType = "text/plain")
