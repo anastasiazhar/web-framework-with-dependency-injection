@@ -1,13 +1,11 @@
 package app;
 
-import jdk.jfr.Name;
 import webdi.annotation.*;
 import webdi.web.NamedFile;
 import webdi.web.ResponseEntity;
 import webdi.web.Status;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Optional;
 
 @Controller(contentType = "text/html")
 public class AnotherController {
@@ -74,6 +72,11 @@ public class AnotherController {
     @Route("/empty")
     public ResponseEntity emptyBodyRoute() {
         return ResponseEntity.noContent();
+    }
+
+    @Route("/headers")
+    public ResponseEntity returnHeaders() {
+        return ResponseEntity.Builder.newInstance().body("i fuck your mom").header("X", "XXX").build();
     }
 
     @Route(method = "POST",value = "/body", contentType = "text/plain")

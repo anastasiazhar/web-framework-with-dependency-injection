@@ -91,6 +91,7 @@ public class MyWebServer implements Runnable{
 
     }
 
+    // TODO: do something with headers
     MyResponse handleRequest(MyRequest request) throws Exception {
         String requestPathParts[] = request.requestLine().path().split("\\?");
         Map<String, String> queryParameters = new HashMap<>();
@@ -141,7 +142,9 @@ public class MyWebServer implements Runnable{
                 }
             }
             returnValue = routeHandler.execute(dependencies.toArray());
+            HashMap<String, String> headers = new HashMap<>();
             if (returnValue instanceof ResponseEntity responseEntity) {
+                headers.putAll(responseEntity.getHeaders());
                 if (responseEntity.getBody() == null) {
                     return new MyResponse(new StatusLine("HTTP/1.1", responseEntity.getStatus().get().code, responseEntity.getStatus().get().reason),
                             new HashMap<>(), body);
@@ -155,9 +158,8 @@ public class MyWebServer implements Runnable{
                 String contentType = routeHandler.getContentType();
                 body = getBody(returnValue, contentType);
             }
-            HashMap<String, String> headers = new HashMap<>();
             headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
-            headers.put(CONTENT_LENGTH_HEADER_NAME, "" + body.size());
+            headers.put(CONTENT_LENGTH_HEADER_NAME, Integer.toString(body.size()));
             return new MyResponse(statusLine, headers, body);
         } else {
             StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found");

@@ -10,6 +10,7 @@ public class ResponseEntity {
     private final Optional<Status> status;
     private final Map<String, String> headers;
 
+
     public static ResponseEntity of(Object body) {
         return new Builder().body(body).build();
     }
@@ -51,6 +52,10 @@ public class ResponseEntity {
         private Optional<Status> status = Optional.empty();
         private Map<String, String> headers = new HashMap<>();
 
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
         public Builder body(Object body) {
             this.body = body;
             return this;
@@ -63,6 +68,11 @@ public class ResponseEntity {
 
         public Builder headers(Map<String, String> headers) {
             this.headers = headers;
+            return this;
+        }
+
+        public Builder header(String name, String value) {
+            this.headers.put(name, value);
             return this;
         }
 
