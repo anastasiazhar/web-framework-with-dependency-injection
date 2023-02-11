@@ -3,19 +3,14 @@ package webdi.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import webdi.ConvertingParameters;
-import webdi.annotation.BodyParam;
-import webdi.annotation.Header;
-import webdi.annotation.PathParam;
-import webdi.annotation.QueryParam;
+import webdi.annotation.*;
 import webdi.exception.WebServerException;
 
 import java.io.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
 
 public class MyWebServer implements Runnable{
 
@@ -102,6 +97,15 @@ public class MyWebServer implements Runnable{
                 queryParameters.put(pair[0], pair[1]);
             }
         }
+        Map<String, String> cookies = new HashMap<>();
+        if (request.requestHeaders().containsKey("cookie")) {
+            String allCookies = request.requestHeaders().get("cookie");
+            String[] splitCookies = allCookies.split(";");
+            for (String splitCookie : splitCookies) {
+                String[] cookieProperties = splitCookie.split("=");
+                cookies.put(cookieProperties[0].trim(), cookieProperties[1].trim());
+            }
+        }
         Optional<RoutedRequest> optionalRoutedRequest = router.route(request.requestLine());
         if (optionalRoutedRequest.isPresent()) {
             RoutedRequest routedRequest = optionalRoutedRequest.get();
@@ -139,11 +143,12 @@ public class MyWebServer implements Runnable{
                             .orElseThrow(() -> new WebServerException("Failed to read query parameter " + value + " because it has unsupported type " + parameterType)));
                 } else if (parameter.getAnnotation(Header.class) != null) {
                     String key = parameter.getAnnotation(Header.class).value().toLowerCase();
-                    request.requestHeaders().forEach((name, value) -> System.out.println(name + " " + value));
                     dependencies.add(request.requestHeaders().get(key));
+                } else if (parameter.getAnnotation(Cookie.class) != null) {
+                    String cookieName = parameter.getAnnotation(Cookie.class).value().toLowerCase();
+                    dependencies.add(cookies.get(cookieName));
                 } else {
                     throw new WebServerException("Parameter has unsupported annotation");
-
                 }
             }
             returnValue = routeHandler.execute(dependencies.toArray());
@@ -158,6 +163,11 @@ public class MyWebServer implements Runnable{
                 if (responseEntity.getStatus().isPresent()) {
                     Status status = responseEntity.getStatus().get();
                     statusLine = new StatusLine("HTTP/1.1", status.code, status.reason);
+                }
+                for (ResponseCookie cookie : responseEntity.getCookies()) {
+                    headers.put("set-cookie", cookie.name() + "=" + cookie.value() + ";" +
+                            "path=" + cookie.path() + ";" +
+                            "expiration=" + cookie.expiration());
                 }
             } else {
                 String contentType = routeHandler.getContentType();

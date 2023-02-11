@@ -1,14 +1,13 @@
 package webdi.web;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class ResponseEntity {
 
     private final Object body;
     private final Optional<Status> status;
     private final Map<String, String> headers;
+    private final Set<ResponseCookie> cookies;
 
 
     public static ResponseEntity of(Object body) {
@@ -51,6 +50,8 @@ public class ResponseEntity {
         private Object body;
         private Optional<Status> status = Optional.empty();
         private Map<String, String> headers = new HashMap<>();
+        private Set<ResponseCookie> cookies = new HashSet<>();
+
 
         public static Builder newInstance() {
             return new Builder();
@@ -76,21 +77,33 @@ public class ResponseEntity {
             return this;
         }
 
+        public Builder cookies(Set<ResponseCookie> cookies) {
+            this.cookies = cookies;
+            return this;
+        }
+
+        public Builder cookie(ResponseCookie cookie) {
+            this.cookies.add(cookie);
+            return this;
+        }
+
         public ResponseEntity build() {
             return new ResponseEntity(this);
         }
     }
 
-    public ResponseEntity(Object body, Optional<Status> status, Map<String, String> headers) {
+    public ResponseEntity(Object body, Optional<Status> status, Map<String, String> headers, Set<ResponseCookie> cookies) {
         this.body = body;
         this.status = status;
         this.headers = headers;
+        this.cookies = cookies;
     }
 
     public ResponseEntity(Builder builder) {
         this.body = builder.body;
         this.status = builder.status;
         this.headers = builder.headers;
+        this.cookies = builder.cookies;
     }
 
     public Object getBody() {
@@ -104,4 +117,6 @@ public class ResponseEntity {
     public Map<String, String> getHeaders() {
         return headers;
     }
+
+    public Set<ResponseCookie> getCookies() {return cookies; }
 }

@@ -109,7 +109,7 @@ public final class WebdiApplication {
                     }
                     Map<String, Object> namesMap = instances.get(parameterType);
                     Named named = parameter.getAnnotation(Named.class);
-                    if (named != null) {
+                    if (named != null) {    
                         arguments.add(namesMap.get(named.value()));
                     } else {
                         arguments.add(namesMap.get(null));

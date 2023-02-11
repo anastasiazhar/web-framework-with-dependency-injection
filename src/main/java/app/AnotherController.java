@@ -2,6 +2,7 @@ package app;
 
 import webdi.annotation.*;
 import webdi.web.NamedFile;
+import webdi.web.ResponseCookie;
 import webdi.web.ResponseEntity;
 import webdi.web.Status;
 
@@ -76,7 +77,9 @@ public class AnotherController {
 
     @Route("/headers")
     public ResponseEntity returnHeaders(@Header("User-Agent") String userAgent) {
-        return ResponseEntity.Builder.newInstance().body("i fuck your mom using " + userAgent).header("X", "XXX").build();
+        return ResponseEntity.Builder.newInstance()
+                .body("i fuck your mom using " + userAgent)
+                .header("X", "XXX").build();
     }
 
     @Route(method = "POST",value = "/body", contentType = "text/plain")
@@ -123,5 +126,21 @@ public class AnotherController {
     @Route("/trie/{id:[1-9][0-9]*}/word")
     public String trieTestWord(@PathParam("id") int id) {
         return "hello, id " + id;
+    }
+
+    @Route("/cookies")
+    public ResponseEntity cookies(@Cookie("my-cookie") String cookie) {
+        if (cookie == null) {
+            return ResponseEntity.Builder.newInstance()
+                    .status(Status.OK)
+                    .cookie(new ResponseCookie("my-cookie", "hello bitches " + System.currentTimeMillis(), "/", 60))
+                    .body("you had no cookie, you shall not pass")
+                    .build();
+        } else {
+            return ResponseEntity.Builder.newInstance()
+                    .status(Status.OK)
+                    .body("yay, you have a cookie " + cookie)
+                    .build();
+        }
     }
 }
