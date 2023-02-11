@@ -6,7 +6,7 @@ public class ResponseEntity {
 
     private final Object body;
     private final Optional<Status> status;
-    private final Map<String, String> headers;
+    private final Map<String, List<String>> headers;
     private final Set<ResponseCookie> cookies;
 
 
@@ -49,7 +49,7 @@ public class ResponseEntity {
     public static class Builder {
         private Object body;
         private Optional<Status> status = Optional.empty();
-        private Map<String, String> headers = new HashMap<>();
+        private Map<String, List<String>> headers = new HashMap<>();
         private Set<ResponseCookie> cookies = new HashSet<>();
 
 
@@ -67,13 +67,17 @@ public class ResponseEntity {
             return this;
         }
 
-        public Builder headers(Map<String, String> headers) {
+        public Builder headers(Map<String, List<String>> headers) {
             this.headers = headers;
             return this;
         }
 
         public Builder header(String name, String value) {
-            this.headers.put(name, value);
+            if (this.headers.containsKey(name)) {
+                this.headers.get(name).add(value);
+            } else {
+                this.headers.put(name, List.of(value));
+            }
             return this;
         }
 
@@ -92,7 +96,7 @@ public class ResponseEntity {
         }
     }
 
-    public ResponseEntity(Object body, Optional<Status> status, Map<String, String> headers, Set<ResponseCookie> cookies) {
+    public ResponseEntity(Object body, Optional<Status> status, Map<String, List<String>> headers, Set<ResponseCookie> cookies) {
         this.body = body;
         this.status = status;
         this.headers = headers;
@@ -114,7 +118,7 @@ public class ResponseEntity {
         return status;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return headers;
     }
 

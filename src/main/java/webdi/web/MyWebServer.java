@@ -1,6 +1,5 @@
 package webdi.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import webdi.ConvertingParameters;
 import webdi.annotation.*;
@@ -35,7 +34,7 @@ public class MyWebServer implements Runnable{
             OutputStream outputStream = socket.getOutputStream();
             String currentLine = null;
             RequestLine requestLine = null;
-            HashMap<String, String> requestHeaders = new HashMap<>();
+            HashMap<String, List<String>> requestHeaders = new HashMap<>();
             RequestPart currentRequestPart = RequestPart.REQUEST_LINE;
             loop: while ((currentLine = bufferedReader.readLine()) != null) {
                 switch (currentRequestPart) {
@@ -55,13 +54,17 @@ public class MyWebServer implements Runnable{
                         int index = currentLine.indexOf(":");
                         String name = currentLine.substring(0, index).trim().toLowerCase();
                         String value = currentLine.substring(index + 1).trim();
-                        requestHeaders.put(name, value);
+                        if (requestHeaders.containsKey(name)) {
+                            requestHeaders.get(name).add(value);
+                        } else {
+                            requestHeaders.put(name, List.of(value));
+                        }
                     }
                 }
             }
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             if (requestHeaders.containsKey(CONTENT_LENGTH_HEADER_NAME) && requestHeaders.containsKey(CONTENT_TYPE_HEADER_NAME)) {
-                int contentLength = Integer.parseInt(requestHeaders.get(CONTENT_LENGTH_HEADER_NAME));
+                int contentLength = Integer.parseInt(requestHeaders.get(CONTENT_LENGTH_HEADER_NAME).get(0));
                 for (int i = 0; i < contentLength; i++) {
                     body.write((byte) bufferedReader.read());
                 }
@@ -69,11 +72,17 @@ public class MyWebServer implements Runnable{
             MyResponse response = handleRequest(new MyRequest(requestLine, requestHeaders, body));
             outputStream.write(response.statusLine().convert().getBytes(StandardCharsets.UTF_8));
             outputStream.write(CRLF.getBytes(StandardCharsets.UTF_8));
-            for (Map.Entry<String, String> entry : response.responseHeaders().entrySet()) {
+            for (Map.Entry<String, List<String>> entry : response.responseHeaders().entrySet()) {
                 StringBuilder builder = new StringBuilder();
-                builder.append(entry.getKey()).append(": ").append(entry.getValue());
-                outputStream.write(builder.toString().getBytes(StandardCharsets.UTF_8));
-                outputStream.write(CRLF.getBytes(StandardCharsets.UTF_8));
+                String key = entry.getKey();
+                List<String> values = entry.getValue();
+                for (String value : values) {
+                    builder.append(key).append(": ").append(value);
+                    System.out.println(builder);
+                    outputStream.write(builder.toString().getBytes(StandardCharsets.UTF_8));
+                    outputStream.write(CRLF.getBytes(StandardCharsets.UTF_8));
+                    builder.setLength(0);
+                }
             }
             outputStream.write(CRLF.getBytes(StandardCharsets.UTF_8));
             if (response.responseBody() != null) {
@@ -99,11 +108,12 @@ public class MyWebServer implements Runnable{
         }
         Map<String, String> cookies = new HashMap<>();
         if (request.requestHeaders().containsKey("cookie")) {
-            String allCookies = request.requestHeaders().get("cookie");
-            String[] splitCookies = allCookies.split(";");
-            for (String splitCookie : splitCookies) {
-                String[] cookieProperties = splitCookie.split("=");
-                cookies.put(cookieProperties[0].trim(), cookieProperties[1].trim());
+            for (String allCookies : request.requestHeaders().get("cookie")) {
+                String[] splitCookies = allCookies.split(";");
+                for (String splitCookie : splitCookies) {
+                    String[] cookieProperties = splitCookie.split("=");
+                    cookies.put(cookieProperties[0].trim(), cookieProperties[1].trim());
+                }
             }
         }
         Optional<RoutedRequest> optionalRoutedRequest = router.route(request.requestLine());
@@ -143,7 +153,10 @@ public class MyWebServer implements Runnable{
                             .orElseThrow(() -> new WebServerException("Failed to read query parameter " + value + " because it has unsupported type " + parameterType)));
                 } else if (parameter.getAnnotation(Header.class) != null) {
                     String key = parameter.getAnnotation(Header.class).value().toLowerCase();
-                    dependencies.add(request.requestHeaders().get(key));
+                    if (!request.requestHeaders().containsKey(key)) {
+                        throw new WebServerException("No header named " + key);
+                    }
+                    dependencies.add(request.requestHeaders().get(key).get(0));
                 } else if (parameter.getAnnotation(Cookie.class) != null) {
                     String cookieName = parameter.getAnnotation(Cookie.class).value().toLowerCase();
                     dependencies.add(cookies.get(cookieName));
@@ -152,9 +165,11 @@ public class MyWebServer implements Runnable{
                 }
             }
             returnValue = routeHandler.execute(dependencies.toArray());
-            HashMap<String, String> headers = new HashMap<>();
+            // TODO: String => List<String>
+            HashMap<String, List<String>> headers = new HashMap<>();
             if (returnValue instanceof ResponseEntity responseEntity) {
                 headers.putAll(responseEntity.getHeaders());
+                // TODO: fix
                 if (responseEntity.getBody() == null) {
                     return new MyResponse(new StatusLine("HTTP/1.1", responseEntity.getStatus().get().code, responseEntity.getStatus().get().reason),
                             new HashMap<>(), body);
@@ -165,20 +180,27 @@ public class MyWebServer implements Runnable{
                     statusLine = new StatusLine("HTTP/1.1", status.code, status.reason);
                 }
                 for (ResponseCookie cookie : responseEntity.getCookies()) {
-                    headers.put("set-cookie", cookie.name() + "=" + cookie.value() + ";" +
+                    String cookieLine = cookie.name() + "=" + cookie.value() + ";" +
                             "path=" + cookie.path() + ";" +
-                            "expiration=" + cookie.expiration());
+                            "expiration=" + cookie.expiration();
+                    if (headers.containsKey("set-cookie")) {
+                        headers.get("set-cookie").add(cookieLine);
+                    } else {
+                        List<String> list = new ArrayList<>();
+                        list.add(cookieLine);
+                        headers.put("set-cookie", list);
+                    }
                 }
             } else {
                 String contentType = routeHandler.getContentType();
                 body = getBody(returnValue, contentType);
             }
-            headers.put(CONTENT_TYPE_HEADER_NAME, routeHandler.getContentType());
-            headers.put(CONTENT_LENGTH_HEADER_NAME, Integer.toString(body.size()));
+            headers.put(CONTENT_TYPE_HEADER_NAME, List.of(routeHandler.getContentType()));
+            headers.put(CONTENT_LENGTH_HEADER_NAME, List.of(Integer.toString(body.size())));
             return new MyResponse(statusLine, headers, body);
         } else {
             StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found");
-            HashMap<String, String> headers = new HashMap<>();
+            HashMap<String, List<String>> headers = new HashMap<>();
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             body.write("<h1>404</h1>".getBytes());
             return new MyResponse(statusLine, headers, body);

@@ -134,6 +134,7 @@ public class AnotherController {
             return ResponseEntity.Builder.newInstance()
                     .status(Status.OK)
                     .cookie(new ResponseCookie("my-cookie", "hello bitches " + System.currentTimeMillis(), "/", 60))
+                    .cookie(new ResponseCookie("another-cookie", "hello dumb bitches " + System.currentTimeMillis(), "/", 60))
                     .body("you had no cookie, you shall not pass")
                     .build();
         } else {
