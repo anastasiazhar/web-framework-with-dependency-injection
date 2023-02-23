@@ -1,6 +1,8 @@
 package webdi.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webdi.ConvertingParameters;
 import webdi.annotation.*;
 import webdi.exception.WebServerException;
@@ -12,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MyWebServer implements Runnable{
+    private static final Logger logger = LoggerFactory.getLogger(MyWebServer.class);
+
 
     public static final String CONTENT_LENGTH_HEADER_NAME = "content-length";
     public static final String CONTENT_TYPE_HEADER_NAME = "content-type";
@@ -44,6 +48,7 @@ public class MyWebServer implements Runnable{
                         String path = split[1];
                         String protocol = split[2];
                         requestLine = new RequestLine(method, path, protocol);
+                        logger.info("Serving request " + method + " " + path + " using protocol " + protocol);
                         currentRequestPart = RequestPart.REQUEST_HEADER;
                     }
                     case REQUEST_HEADER -> {
@@ -78,7 +83,6 @@ public class MyWebServer implements Runnable{
                 List<String> values = entry.getValue();
                 for (String value : values) {
                     builder.append(key).append(": ").append(value);
-                    System.out.println(builder);
                     outputStream.write(builder.toString().getBytes(StandardCharsets.UTF_8));
                     outputStream.write(CRLF.getBytes(StandardCharsets.UTF_8));
                     builder.setLength(0);
@@ -89,6 +93,7 @@ public class MyWebServer implements Runnable{
                 outputStream.write(response.responseBody().toByteArray());
             }
             outputStream.close();
+            logger.info("Request served");
         } catch (Exception e) {
             System.out.println("Exception in thread: " + Thread.currentThread().getName());
             e.printStackTrace();
@@ -165,7 +170,6 @@ public class MyWebServer implements Runnable{
                 }
             }
             returnValue = routeHandler.execute(dependencies.toArray());
-            // TODO: String => List<String>
             HashMap<String, List<String>> headers = new HashMap<>();
             if (returnValue instanceof ResponseEntity responseEntity) {
                 headers.putAll(responseEntity.getHeaders());
@@ -199,6 +203,7 @@ public class MyWebServer implements Runnable{
             headers.put(CONTENT_LENGTH_HEADER_NAME, List.of(Integer.toString(body.size())));
             return new MyResponse(statusLine, headers, body);
         } else {
+            logger.info("Couldn't find appropriate handler, serving 404");
             StatusLine statusLine = new StatusLine("HTTP/1.1", 404, "not found");
             HashMap<String, List<String>> headers = new HashMap<>();
             ByteArrayOutputStream body = new ByteArrayOutputStream();

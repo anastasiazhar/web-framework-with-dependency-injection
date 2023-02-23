@@ -59,7 +59,6 @@ public class InjectableBean implements Injectable{
         return "InjectableBean{" +
                 "method=" + method.toGenericString() +
                 ", class=" + configuration.getClass().getName() +
-                ", configuration=" + configuration +
                 '}';
     }
 

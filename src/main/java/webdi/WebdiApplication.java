@@ -2,6 +2,8 @@ package webdi;
 
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webdi.annotation.*;
 import webdi.di.Injectable;
 import webdi.di.InjectableBean;
@@ -24,10 +26,13 @@ import java.util.stream.StreamSupport;
 
 public final class WebdiApplication {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebdiApplication.class);
+
     private WebdiApplication() {
     }
 
     public static void start(Class<?> c) {
+        logger.info("Starting webdi application for class {}", c.getName());
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
         InputStream inputStream = classloader.getResourceAsStream("config.properties");
         InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -41,19 +46,27 @@ public final class WebdiApplication {
                 configValues.put(name, value);
             }
         } catch (Exception e) {
+            logger.error("failed to read config", e);
             throw new RuntimeException(e);
         }
 
         List<Injectable> injectables = new ArrayList<>();
         Set<Class<?>> classes = AccessingAllClassesInPackage.findAllClassesUsingClassLoader(c.getPackageName());
+        logger.info("Scanning started");
         for (Class<?> clazz : classes) {
-            if (clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Controller.class)) {
+            if (clazz.isAnnotationPresent(Component.class)) {
+                logger.info("Found component " + clazz.getName());
+                injectables.add(new InjectableComponent(clazz));
+            } else if (clazz.isAnnotationPresent(Controller.class)) {
+                logger.info("Found controller " + clazz.getName());
                 injectables.add(new InjectableComponent(clazz));
             } else if (clazz.isAnnotationPresent(Configuration.class)) {
+                logger.info("Found configuration " + clazz.getName());
                 try {
                     Object configuration = clazz.getConstructor().newInstance();
                     for (Method method : clazz.getMethods()) {
                         if (method.isAnnotationPresent(Bean.class)) {
+                            logger.info("Found bean " + method.getName());
                             injectables.add(new InjectableBean(method, configuration));
                         }
                     }
@@ -62,6 +75,7 @@ public final class WebdiApplication {
                 }
             }
         }
+        logger.info("Scanning finished");
         Map<NamedClass, Injectable> classInjectableMap = new HashMap<>();
         Map<Injectable, Set<NamedClass>> dependencies = new HashMap<>();
         for (Injectable i : injectables) {
@@ -97,7 +111,9 @@ public final class WebdiApplication {
         Collections.reverse(orderedInjectables);
 
         Map<Class<?>, Map<String, Object>> instances = new HashMap<>();
+        logger.info("Starting to create dependencies");
         for (Injectable injectable : orderedInjectables) {
+            logger.info("Creating dependency " + injectable);
             List<Object> arguments = new ArrayList<>();
             for (Parameter parameter : injectable.getParameters()) {
                 Class<?> parameterType = parameter.getType();
@@ -109,7 +125,7 @@ public final class WebdiApplication {
                     }
                     Map<String, Object> namesMap = instances.get(parameterType);
                     Named named = parameter.getAnnotation(Named.class);
-                    if (named != null) {    
+                    if (named != null) {
                         arguments.add(namesMap.get(named.value()));
                     } else {
                         arguments.add(namesMap.get(null));
@@ -140,13 +156,16 @@ public final class WebdiApplication {
             }
         }
 
+        logger.info("Started scanning routes");
         HashMap<HandlerKey, RouteHandler> routes = extractRoutes(controllers);
         Router router = new TrieRouter(routes);
+        logger.info("Finished scanning routes and created router");
 
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             int counter = 1;
             while (true) {
                 Socket socket = serverSocket.accept();
+                logger.info("Received new connection from " + socket.getRemoteSocketAddress());
                 MyWebServer webServer = new MyWebServer(socket, router);
                 Thread thread = new Thread(webServer, "[" + counter + "]");
                 thread.start();
@@ -160,11 +179,13 @@ public final class WebdiApplication {
     private static HashMap<HandlerKey, RouteHandler> extractRoutes(List<Object> controllers) {
         HashMap<HandlerKey, RouteHandler> map = new HashMap<>();
         for (Object controller : controllers) {
+            logger.info("Scanning routes for controller " + controller.getClass().getName());
             Class<?> objectClass = controller.getClass();
             Method[] methods = objectClass.getMethods();
             for (Method method : methods) {
                 Route route = method.getAnnotation(Route.class);
                 if (route != null) {
+                    logger.info("Found route " + method.getName());
                     map.put(new HandlerKey(route.method(), route.value()), new RouteHandler(method, controller, objectClass));
                 }
             }
