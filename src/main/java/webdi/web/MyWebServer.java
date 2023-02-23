@@ -173,11 +173,6 @@ public class MyWebServer implements Runnable{
             HashMap<String, List<String>> headers = new HashMap<>();
             if (returnValue instanceof ResponseEntity responseEntity) {
                 headers.putAll(responseEntity.getHeaders());
-                // TODO: fix
-                if (responseEntity.getBody() == null) {
-                    return new MyResponse(new StatusLine("HTTP/1.1", responseEntity.getStatus().get().code, responseEntity.getStatus().get().reason),
-                            new HashMap<>(), body);
-                }
                 body = getBody(responseEntity.getBody(), routeHandler.getContentType());
                 if (responseEntity.getStatus().isPresent()) {
                     Status status = responseEntity.getStatus().get();
@@ -214,6 +209,9 @@ public class MyWebServer implements Runnable{
 
     ByteArrayOutputStream getBody(Object returnValue, String contentType) throws Exception {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
+        if (returnValue == null) {
+            return body;
+        }
         if (returnValue instanceof String) {
             body.write(((String) returnValue).getBytes());
         } else if (contentType.equals("application/json")) {
