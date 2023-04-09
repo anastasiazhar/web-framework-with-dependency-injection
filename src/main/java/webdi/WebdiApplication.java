@@ -31,6 +31,18 @@ public final class WebdiApplication {
     private WebdiApplication() {
     }
 
+    public static void start() {
+        try {
+            // https://stackoverflow.com/a/34948763
+            String className = Thread.currentThread().getStackTrace()[2].getClassName();
+            logger.debug("Identified main class as: " + className);
+            Class<?> clazz = Class.forName(className);
+            start(clazz);
+        } catch (ClassNotFoundException e) {
+            logger.error("Couldn't find main class", e);
+        }
+    }
+
     public static void start(Class<?> c) {
         logger.info("Starting webdi application for class {}", c.getName());
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();

@@ -7,9 +7,20 @@
     <list default="true" id="551f9a2e-b7f3-4906-91c0-c5677c53fe9c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/A.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/AnotherController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/B.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/C.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/D.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/E.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/F.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyClass.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MyInterfaceImplementation.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/WebdiApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/di/InjectableBean.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/webdi/web/MyWebServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/webdi/web/MyWebServer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
